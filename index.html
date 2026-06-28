@@ -1,0 +1,574 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elegant Park Menu</title>
+    <style>
+        :root {
+            --space-bg: #0b0b1e;
+            --neon-blue: #00f2ff;
+            --neon-purple: #a124ff;
+            --neon-pink: #ff2a85;
+            --text-color: #ffffff;
+            --card-bg: rgba(25, 25, 50, 0.65);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #050510 0%, #0b0b26 50%, #150a21 100%);
+            color: var(--text-color);
+            background-attachment: fixed;
+            min-height: 100vh;
+            padding-bottom: 40px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Эффект звёздного неба на фоне */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
+                radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px);
+            background-size: 550px 550px, 350px 350px, 250px 250px;
+            background-position: 0 0, 40px 60px, 130px 270px;
+            opacity: 0.4;
+            z-index: -1;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px 20px;
+            position: relative;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: #fff;
+            text-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-purple);
+            margin-bottom: 5px;
+        }
+
+        header p {
+            color: #8fa0dd;
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+        }
+
+        /* Навигация по категориям (Скроллится пальцем на мобилках) */
+        .categories-nav {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 15px 20px;
+            position: sticky;
+            top: 0;
+            background: rgba(5, 5, 16, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            border-bottom: 1px solid rgba(0, 242, 255, 0.2);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        .categories-nav::-webkit-scrollbar {
+            display: none; /* Прячем некрасивый скроллбар */
+        }
+
+        .cat-btn {
+            background: rgba(255, 255, 255, 0.05);
+            color: #b0c4de;
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .cat-btn.active, .cat-btn:hover {
+            background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 0 12px rgba(0, 242, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .menu-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+
+        .menu-section {
+            display: none; /* Переключается через скрипт */
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .menu-section.active {
+            display: block;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            margin: 25px 0 15px;
+            color: #fff;
+            text-shadow: 0 0 8px var(--neon-pink);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Стили карточек блюд */
+        .menu-item {
+            background: var(--card-bg);
+            border: 1px solid rgba(161, 36, 255, 0.15);
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(5px);
+            transition: transform 0.2s, border-color 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .menu-item:hover {
+            transform: scale(1.01);
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+        }
+
+        .item-info {
+            flex-grow: 1;
+            padding-right: 15px;
+        }
+
+        .item-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .item-desc {
+            font-size: 0.85rem;
+            color: #a0a5c0;
+            line-height: 1.3;
+        }
+
+        .item-price {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--neon-blue);
+            white-space: nowrap;
+            text-shadow: 0 0 5px rgba(0, 242, 255, 0.3);
+        }
+
+        .item-volume {
+            font-size: 0.8rem;
+            color: #6c7293;
+            display: block;
+            text-align: right;
+            margin-top: 2px;
+        }
+
+        .info-notice {
+            background: rgba(255, 42, 133, 0.1);
+            border: 1px solid rgba(255, 42, 133, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 25px;
+            font-size: 0.9rem;
+            color: #ff9ebb;
+            line-height: 1.4;
+            text-align: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Интеграция под двойные цены (Напитки) */
+        .price-row {
+            display: flex;
+            gap: 15px;
+        }
+        .price-block {
+            text-align: center;
+        }
+        .price-label {
+            font-size: 0.75rem;
+            color: #8fa0dd;
+            display: block;
+            margin-bottom: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Elegant Park MENU</h1>
+        <p>Добро пожаловать в Elegant Park кафе</p>
+    </header>
+
+    <!-- Переключатели категорий -->
+    <div class="categories-nav">
+        <button class="cat-btn active" onclick="openCategory('hot')">Горячее & Супы</button>
+        <button class="cat-btn" onclick="openCategory('shashlik')">Шашлык & Стейки</button>
+        <button class="cat-btn" onclick="openCategory('sushi')">Роллы & Сеты</button>
+        <button class="cat-btn" onclick="openCategory('pizza')">Пицца & Бургеры</button>
+        <button class="cat-btn" onclick="openCategory('snacks')">Закуски & Гарниры</button>
+        <button class="cat-btn" onclick="openCategory('kids')">Детское меню</button>
+        <button class="cat-btn" onclick="openCategory('desserts')">Выпечка & Десерты</button>
+        <button class="cat-btn" onclick="openCategory('drinks')">Напитки & Чай</button>
+    </div>
+
+    <div class="menu-container">
+
+        <!-- ГОРЯЧЕЕ И СУПЫ -->
+        <div id="hot" class="menu-section active">
+            <div class="info-notice">
+                Уважаемые гости! Просим заранее сообщать официанту о наличии пищевой аллергии.<br>
+                Блюда готовятся из свежих продуктов. Время приготовления блюд может занимать от 15 до 30 минут.<br>
+            </div>
+
+            <div class="section-title">🍲 Супы</div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Лапша фирменная</div></div><div class="item-price">2 290 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Мампар</div></div><div class="item-price">1 990 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Пельмени с бульоном</div></div><div class="item-price">1 990 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Рамен с говядиной</div></div><div class="item-price">2 790 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Рамен сырный</div></div><div class="item-price">2 390 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Рамен с курицей</div></div><div class="item-price">2 390 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Том ям</div></div><div class="item-price">3 790 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Шурпа из баранины</div></div><div class="item-price">2 290 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Шурпа из говядины</div></div><div class="item-price">2 490 ₸</div></div>
+
+            <div class="section-title">🍳 Горячие блюда & Лагман</div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Плов ташкентский</div></div><div class="item-price">2 190 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Плов праздничный</div></div><div class="item-price">2 390 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Куырдак с кониной</div></div><div class="item-price">3 790 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Манты с рубленым мясом</div></div><div class="item-price">2 390 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Манты жареные</div></div><div class="item-price">2 490 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Казан-кебаб (баранина)</div></div><div class="item-price">3 790 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Казан-кебаб по-китайски</div></div><div class="item-price">2 890 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Бефстроганов</div></div><div class="item-price">3 490 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Бифштекс с яйцом</div></div><div class="item-price">2 790 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Курица в сливочном соусе</div></div><div class="item-price">2 590 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Курица с овощами</div></div><div class="item-price">2 590 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Мясо по-тайски</div></div><div class="item-price">2 190 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Нежность</div></div><div class="item-price">2 590 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Фри с мясом</div></div><div class="item-price">2 690 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Гуйру лагман</div></div><div class="item-price">2 390 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Домашний лагман</div></div><div class="item-price">2 490 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Лазы-джи лагман</div></div><div class="item-price">2 290 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Сау кау ру лагман</div></div><div class="item-price">2 890 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Суйру лагман</div></div><div class="item-price">2 390 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Фирменный лагман «Elegant»</div></div><div class="item-price">3 290 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Ганфан цомян (острый)</div></div><div class="item-price">2 290 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Гуйру цомян</div></div><div class="item-price">2 290 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Дин-дин цомян</div></div><div class="item-price">2 690 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Лазы-джи цомян</div></div><div class="item-price">2 390 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Сау ку ру цомян</div></div><div class="item-price">2 890 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Сау кау ру ганфан</div></div><div class="item-price">2 490 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Суйру ганфан</div></div><div class="item-price">2 890 ₸</div></div>
+        </div>
+
+        <!-- ШАШЛЫК И СТЕЙКИ -->
+        <div id="shashlik" class="menu-section">
+            <div class="section-title">🥩 Стейки</div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Стейк из сёмги</div></div><div class="item-price">5 190 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Стейк рибай</div></div><div class="item-price">6 490 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Стейк тибон</div></div><div class="item-price">6 390 ₸</div></div>
+
+            <div class="section-title">🍢 Шашлыки</div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Люля-кебаб</div></div><div class="item-price">2 390 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Шашлык из баранины</div></div><div class="item-price">2 590 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Шашлык из говядины</div></div><div class="item-price">2 590 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Шашлык из курицы</div></div><div class="item-price">2 290 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Шашлык из утки</div></div><div class="item-price">2 290 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Шашлык из шампиньонов</div></div><div class="item-price">1 590 ₸</div></div>
+
+            <div class="section-title">👥 Блюда на компанию</div>
+            <div class="menu-item">
+                <div class="item-info">
+                    <div class="item-title">Дапанджи</div>
+                    <div class="item-desc">5 персон. Сочная курица с картофелем в насыщенном пряном соусе с домашней лапшой.</div>
+                </div>
+                <div class="item-price">16 990 ₸</div>
+            </div>
+            <div class="menu-item">
+                <div class="item-info">
+                    <div class="item-title">Хан-плов</div>
+                    <div class="item-desc">6 персон. Ароматный плов (2 кг) с нежным мясом, казы, перепелиными яйцами и сочными люля-кебабами.</div>
+                </div>
+                <div class="item-price">21 990 ₸</div>
+            </div>
+            <div class="menu-item">
+                <div class="item-info">
+                    <div class="item-title">Шах-плов</div>
+                    <div class="item-desc">4 персоны. Сочный плов, запечённый в тесте до хрустящей корочки, с мясом, рисом и сухофруктами.</div>
+                </div>
+                <div class="item-price">12 990 ₸</div>
+            </div>
+            <div class="menu-item">
+                <div class="item-info">
+                    <div class="item-title">Шах-плов</div>
+                    <div class="item-desc">6 персон. Версия знаменитого плова в тесте на большую компанию.</div>
+                </div>
+                <div class="item-price">17 990 ₸</div>
+            </div>
+            <div class="menu-item">
+                <div class="item-info">
+                    <div class="item-title">Ассорти шашлыков</div>
+                    <div class="item-desc">Большое мясное ассорти: баранина, говядина, курица, утка, люля, шампиньоны, картофельные дольки и фри.</div>
+                </div>
+                <div class="item-price">23 990 ₸</div>
+            </div>
+            <div class="menu-item">
+                <div class="item-info">
+                    <div class="item-title">Сет «Гриль Микс»</div>
+                    <div class="item-desc">Большой гриль-сет: сочные колбаски, стейки Тибон и Рибай, утка, курица, гарниры.</div>
+                </div>
+                <div class="item-price">41 990 ₸</div>
+            </div>
+        </div>
+
+        <!-- РОЛЛЫ И СЕТЫ -->
+        <div id="sushi" class="menu-section">
+            <div class="section-title">🍣 Роллы</div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Филадельфия</div></div><div class="item-price">2 990 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Калифорния</div></div><div class="item-price">2 790 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Сяке маки</div></div><div class="item-price">1 990 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Американо (жареный)</div></div><div class="item-price">3 290 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Ролл запечённый с лососем</div></div><div class="item-price">3 290 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Калифорния запечённая</div></div><div class="item-price">2 990 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Поцелуй гейши</div></div><div class="item-price">3 290 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Краб темпура</div></div><div class="item-price">2 690 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Филадельфия запечённая</div></div><div class="item-price">3 390 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Филадельфия (с хрустящими креветками)</div></div><div class="item-price">3 990 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Цезарь ролл</div></div><div class="item-price">2 290 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Камикадзе</div></div><div class="item-price">2 390 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Филадельфия темпура</div></div><div class="item-price">2 790 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Вулкан</div></div><div class="item-price">2 690 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Чизу</div></div><div class="item-price">3 190 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Ролл Бонито (холодный)</div></div><div class="item-price">2 390 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Ролл Аляска (холодный)</div></div><div class="item-price">2 390 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Ролл Фьюжн (жареный)</div></div><div class="item-price">2 390 ₸</div></div>
+
+            <div class="section-title">🍱 Сеты роллов</div>
+            <div class="menu-item">
+                <div class="item-info">
+                    <div class="item-title">Сет суши «Хит 32»</div>
+                    <div class="item-desc">Цезарь ролл, Филадельфия, Американо жареный, Сяке темпура.</div>
+                </div>
+                <div class="item-price">9 990 ₸</div>
+            </div>
+            <div class="menu-item">
+                <div class="item-info">
+                    <div class="item-title">Жареный сет 32</div>
+                    <div class="item-desc">Американо жареный, Краб темпура, Филадельфия темпура, Камикадзе.</div>
+                </div>
+                <div class="item-price">10 190 ₸</div>
+            </div>
+            <div class="menu-item">
+                <div class="item-info">
+                    <div class="item-title">Сет «Запечённый» (40 шт.)</div>
+                    <div class="item-desc">Поцелуй гейши, Филадельфия запечённая, Сливочный водоросль Калифорния.</div>
+                </div>
+                <div class="item-price">14 690 ₸</div>
+            </div>
+            <div class="menu-item">
+                <div class="item-info">
+                    <div class="item-title">Сет «Elegant» (48 шт.)</div>
+                    <div class="item-desc">Филадельфия запечённая, Поцелуй гейши, Запечённые с лососем, Американо жареный, Чизу, Филадельфия с хрустящими креветками.</div>
+                </div>
+                <div class="item-price">19 490 ₸</div>
+            </div>
+        </div>
+
+        <!-- ПИЦЦА И БУРГЕРЫ -->
+        <div id="pizza" class="menu-section">
+            <div class="section-title">🍕 Пицца & Паста</div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Пепперони</div></div><div class="item-price">2 990 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Маргарита</div></div><div class="item-price">2 690 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Пицца «4 Сезона»</div></div><div class="item-price">3 290 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Пицца «Болоньезе»</div></div><div class="item-price">3 090 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Пицца с курицей и грибами</div></div><div class="item-price">2 990 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Пицца «Цезарь»</div></div><div class="item-price">3 090 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Сырная пицца</div></div><div class="item-price">2 990 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Пицца с сёмгой</div></div><div class="item-price">3 490 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Паста «Болоньезе»</div></div><div class="item-price">2 990 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Паста с курицей и грибами</div></div><div class="item-price">2 990 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Паста с сёмгой в сливочном соусе</div></div><div class="item-price">3 390 ₸</div></div>
+
+            <div class="section-title">🍔 Бургеры</div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Бургер с говядиной</div></div><div class="item-price">2 990 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Бургер с курицей</div></div><div class="item-price">2 590 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Мини бургер с фри</div></div><div class="item-price">2 390 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Чикенбургер</div></div><div class="item-price">2 790 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Клаб сэндвич</div></div><div class="item-price">2 790 ₸</div></div>
+        </div>
+
+        <!-- ЗАКУСКИ, САЛАТЫ И ГАРНИРЫ -->
+        <div id="snacks" class="menu-section">
+            <div class="section-title">🥗 Салаты</div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Ачучук</div></div><div class="item-price">990 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Греческий салат</div></div><div class="item-price">2 590 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Малибу</div></div><div class="item-price">1 990 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Свежий салат с майонезом</div></div><div class="item-price">1 590 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Свежий салат с маслом</div></div><div class="item-price">1 590 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Тёплый салат с говядиной</div></div><div class="item-price">3 090 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Хрустящие баклажаны</div></div><div class="item-price">2 790 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Цезарь с креветками</div></div><div class="item-price">3 190 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Цезарь с курицей</div></div><div class="item-price">2 890 ₸</div></div>
+
+            <div class="section-title">🍟 Стритфуд & Закуски</div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Креветки темпура</div></div><div class="item-price">2 690 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Крылышки в панировке (8 шт)</div></div><div class="item-price">2 890 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Куриные стрипсы</div></div><div class="item-price">1 890 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Наггетсы</div></div><div class="item-price">1 590 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Сырные палочки</div></div><div class="item-price">1 790 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Картофель фри</div></div><div class="item-price">990 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Картофельные дольки</div></div><div class="item-price">990 ₸</div></div>
+
+            <div class="section-title">🥔 Гарниры & Соусы</div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Пюре</div></div><div class="item-price">1 090 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Рис</div></div><div class="item-price">990 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Картофель фри (порция)</div></div><div class="item-price">990 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Соус: Сметана</div></div><div class="item-price">490 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Соус: Шашлычный</div></div><div class="item-price">490 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Соус: Кетчуп</div></div><div class="item-price">490 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Соус: Сырный</div></div><div class="item-price">490 ₸</div></div>
+        </div>
+
+        <!-- ДЕТСКОЕ МЕНЮ -->
+        <div id="kids" class="menu-section">
+            <div class="section-title">👶 Детское меню</div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Вареники</div></div><div class="item-price">1 390 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Говяжья котлета с пюре</div></div><div class="item-price">2 490 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Лапша куриная</div></div><div class="item-price">1 490 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Пельмени детские</div></div><div class="item-price">1 790 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Пюре с фрикадельками</div></div><div class="item-price">2 390 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Суп с фрикадельками</div></div><div class="item-price">1 990 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Куриные шпажки</div></div><div class="item-price">1 690 ₸</div></div>
+        </div>
+
+        <!-- ВЫПЕЧКА И ДЕСЕРТЫ -->
+        <div id="desserts" class="menu-section">
+            <div class="section-title">🥐 Выпечка</div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Самса с мясом (1 шт)</div></div><div class="item-price">590 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Чебуреки (5 шт)</div></div><div class="item-price">2 490 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Бауырсак</div></div><div class="item-price">1 090 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Лепёшка</div></div><div class="item-price">490 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Хлебная корзина</div></div><div class="item-price">890 ₸</div></div>
+
+            <div class="section-title">🍰 Десерты</div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Наполеон</div></div><div class="item-price">1 790 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Фрезье</div></div><div class="item-price">1 790 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Меренговый рулет</div></div><div class="item-price">1 890 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Медовик</div></div><div class="item-price">1 590 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Сникерс</div></div><div class="item-price">1 790 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Чизкейк</div></div><div class="item-price">1 690 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Фруктовое ассорти</div></div><div class="item-price">3 890 ₸</div></div>
+        </div>
+
+        <!-- НАПИТКИ -->
+        <div id="drinks" class="menu-section">
+            <div class="section-title">🥤 Лимонады</div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Манго-маракуйя</div></div><div class="item-price">1 990 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Мохито</div></div><div class="item-price">1 990 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Ягодный</div></div><div class="item-price">1 990 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Ананас-киви-лемонграсс</div></div><div class="item-price">1 990 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Грейпфрут-малина</div></div><div class="item-price">1 990 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Тархун</div></div><div class="item-price">1 990 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Киви-яблоко</div></div><div class="item-price">1 990 ₸</div></div>
+
+            <div class="section-title">🥛 Милкшейки</div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Oreo</div></div><div class="item-price">1 990 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Сникерс</div></div><div class="item-price">1 990 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Киндер</div></div><div class="item-price">1 990 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Ванильный</div></div><div class="item-price">1 890 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Клубничный</div></div><div class="item-price">1 890 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Шоколадный</div></div><div class="item-price">1 890 ₸</div></div>
+
+            <div class="section-title">🧃 Прохладительные напитки</div>
+            <div class="menu-item">
+                <div class="item-info"><div class="item-title">Sprite / Fanta / Coca-Cola</div></div>
+                <div class="price-row">
+                    <div class="price-block"><span class="price-label">0.5л</span><span class="item-price">690 ₸</span></div>
+                    <div class="price-block"><span class="price-label">1л</span><span class="item-price">990 ₸</span></div>
+                </div>
+            </div>
+            <div class="menu-item">
+                <div class="item-info"><div class="item-title">Piko</div></div>
+                <div class="price-row">
+                    <div class="price-block"><span class="price-label">0.2л</span><span class="item-price">450 ₸</span></div>
+                    <div class="price-block"><span class="price-label">1л</span><span class="item-price">1 150 ₸</span></div>
+                </div>
+            </div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Боржоми</div></div><div class="item-price">1 290 ₸</div></div>
+            <div class="menu-item">
+                <div class="item-info"><div class="item-title">Elegant вода</div></div>
+                <div class="price-row">
+                    <div class="price-block"><span class="price-label">0.5л</span><span class="item-price">390 ₸</span></div>
+                    <div class="price-block"><span class="price-label">1л</span><span class="item-price">590 ₸</span></div>
+                </div>
+            </div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Bon Aqua</div></div><div class="item-price">690 ₸</div></div>
+            <div class="menu-item">
+                <div class="item-info"><div class="item-title">Fuse Tea</div></div>
+                <div class="price-row">
+                    <div class="price-block"><span class="price-label">0.5л</span><span class="item-price">590 ₸</span></div>
+                    <div class="price-block"><span class="price-label">1л</span><span class="item-price">990 ₸</span></div>
+                </div>
+            </div>
+
+            <div class="section-title">☕ Горячий Чай</div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Зелёный листовой</div></div><div class="item-price">990 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Чёрный листовой</div></div><div class="item-price">990 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Марокканский чай</div></div><div class="item-price">1 590 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Облепиховый чай</div></div><div class="item-price">1 590 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Чай малина мята</div></div><div class="item-price">1 590 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Ташкентский чай</div></div><div class="item-price">1 590 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Гранатовый чай</div></div><div class="item-price">1 590 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Имбирный чай с лимоном</div></div><div class="item-price">1 590 ₸</div></div>
+            <div class="menu-item"><div class="item-info"><div class="item-title">Чай по-казахски</div></div><div class="item-price">1 490 ₸</div></div>
+        </div>
+
+    </div>
+
+    <script>
+        function openCategory(catId) {
+            // Скрываем все разделы меню
+            const sections = document.querySelectorAll('.menu-section');
+            sections.forEach(section => section.classList.remove('active'));
+
+            // Убираем активный класс у кнопок
+            const buttons = document.querySelectorAll('.cat-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            // Показываем нужный раздел и активируем кнопку
+            document.getElementById(catId).classList.add('active');
+            event.currentTarget.classList.add('active');
+
+            // Автоскролл вверх к началу меню при переключении
+            window.scrollTo({ top: document.querySelector('.categories-nav').offsetTop - 10, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
